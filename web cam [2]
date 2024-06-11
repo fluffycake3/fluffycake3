@@ -1,0 +1,50 @@
+import cv2
+
+# Fungsi untuk mendeteksi pergerakan
+def detect_motion(previous_frame, current_frame):
+    # Ubah kedua frame ke grayscale
+    previous_gray = cv2.cvtColor(previous_frame, cv2.COLOR_BGR2GRAY)
+    current_gray = cv2.cvtColor(current_frame, cv2.COLOR_BGR2GRAY)
+
+    # Hitung perbedaan absolute antara dua frame
+    frame_diff = cv2.absdiff(previous_gray, current_gray)
+
+    # Ambil threshold untuk menghasilkan area perbedaan yang jelas
+    _, threshold = cv2.threshold(frame_diff, 30, 255, cv2.THRESH_BINARY)
+
+    # Temukan kontur perbedaan
+    contours, _ = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Tampilkan kotak pembatas di sekitar area perbedaan
+    for contour in contours:
+        if cv2.contourArea(contour) > 500:  # Sesuaikan ambang sesuai kebutuhan
+            (x, y, w, h) = cv2.boundingRect(contour)
+            cv2.rectangle(current_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+    return current_frame
+
+# Inisialisasi webcam
+cap = cv2.VideoCapture(0)
+
+# Baca dua frame pertama dan konversi ke grayscale
+_, previous_frame = cap.read()
+_, current_frame = cap.read()
+
+while True:
+    # Deteksi pergerakan
+    frame_with_motion = detect_motion(previous_frame, current_frame)
+
+    # Tampilkan frame yang sudah diproses
+    cv2.imshow("Motion Detection", frame_with_motion)
+
+    # Update frame sebelumnya dan baca frame baru
+    previous_frame = current_frame.copy()
+    _, current_frame = cap.read()
+
+    # Keluar dari loop jika tombol 'q' ditekan
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+# Hentikan dan bebaskan sumber daya webcam
+cap.release()
+cv2.destroyAllWindows()
