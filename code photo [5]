@@ -1,0 +1,19 @@
+import cv2
+
+# Inisialisasi webcam
+webcam = cv2.VideoCapture(0)
+
+# Baca frame dari webcam
+ret, frame = webcam.read()
+
+# Periksa apakah frame berhasil dibaca
+if ret:
+    # Tampilkan frame di layar monitor
+    cv2.imshow('Webcam Frame', frame)
+    cv2.waitKey(0)  # Tunggu hingga tombol apa pun ditekan
+else:
+    print("Tidak dapat membaca frame dari webcam")
+
+# Bebaskan sumber daya
+webcam.release()
+cv2.destroyAllWindows()
