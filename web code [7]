@@ -1,0 +1,76 @@
+from tkinter import *
+from PIL import Image, ImageTk
+import cv2
+
+# Inisialisasi GUI
+root = Tk()
+root.title("Motion Detection")
+root.geometry("800x600")
+
+# Fungsi untuk mendeteksi pergerakan
+def detect_motion(frame1, frame2):
+    # Ubah frame ke grayscale
+    gray1 = cv2.cvtColor(frame1, cv2.COLOR_BGR2GRAY)
+    gray2 = cv2.cvtColor(frame2, cv2.COLOR_BGR2GRAY)
+    
+    # Hitung perbedaan absolut antara dua frame
+    frame_diff = cv2.absdiff(gray1, gray2)
+    
+    # Thresholding untuk mendapatkan pergerakan yang signifikan
+    _, threshold = cv2.threshold(frame_diff, 30, 255, cv2.THRESH_BINARY)
+    
+    # Dapatkan kontur dari threshold
+    contours, _ = cv2.findContours(threshold, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+    # Loop melalui kontur dan gambar persegi panjang di sekitar mereka
+    for contour in contours:
+        if cv2.contourArea(contour) > 1000:  # Ubah nilai threshold sesuai kebutuhan Anda
+            (x, y, w, h) = cv2.boundingRect(contour)
+            cv2.rectangle(frame1, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            cv2.putText(frame1, "Motion Detected", (10, 20), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+    
+    return frame1
+
+# Fungsi untuk menampilkan video dari webcam
+def show_video():
+    # Menghubungkan ke webcam
+    cap = cv2.VideoCapture(0)
+
+    # Membaca dua frame pertama
+    ret, frame1 = cap.read()
+    ret, frame2 = cap.read()
+
+    while cap.isOpened():
+        # Mendeteksi pergerakan
+        motion_detected_frame = detect_motion(frame1, frame2)
+        
+        # Ubah frame menjadi format gambar yang dapat ditampilkan di Tkinter
+        img = cv2.cvtColor(motion_detected_frame, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(img)
+        img = ImageTk.PhotoImage(image=img)
+        
+        # Update label untuk menampilkan video
+        video_label.img = img
+        video_label.config(image=img)
+        
+        # Update frame
+        frame1 = frame2
+        ret, frame2 = cap.read()
+        
+        # Keluar dari loop jika tombol 'q' ditekan
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+    
+    # Menutup webcam dan menghentikan semua jendela
+    cap.release()
+    cv2.destroyAllWindows()
+
+# Label untuk menampilkan video
+video_label = Label(root)
+video_label.pack()
+
+# Memulai menampilkan video
+show_video()
+
+# Menjalankan GUI
+root.mainloop()
