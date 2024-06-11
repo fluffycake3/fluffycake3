@@ -1,0 +1,28 @@
+import cv2
+
+# Baca foto
+foto = cv2.imread('path/to/your/image.jpg')
+
+# Muat model deteksi pergerakan
+detector = cv2.createBackgroundSubtractorMOG2()
+
+# Ubah foto ke dalam skala abu-abu untuk meningkatkan kinerja
+gray = cv2.cvtColor(foto, cv2.COLOR_BGR2GRAY)
+
+# Deteksi pergerakan menggunakan background subtractor
+mask = detector.apply(gray)
+
+# Temukan kontur pergerakan
+contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# Gambar kotak pembatas di sekitar setiap kontur pergerakan
+for contour in contours:
+    area = cv2.contourArea(contour)
+    if area > 100:  # Ubah ambang sesuai kebutuhan
+        x, y, w, h = cv2.boundingRect(contour)
+        cv2.rectangle(foto, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+# Tampilkan foto yang telah diproses
+cv2.imshow('Motion Detection', foto)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
