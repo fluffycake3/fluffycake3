@@ -1,0 +1,15 @@
+import cv2
+
+# Inisialisasi webcam
+webcam = cv2.VideoCapture(0)
+
+# Baca frame dari webcam
+ret, frame = webcam.read()
+
+# Simpan foto
+cv2.imwrite('foto.jpg', frame)
+print("Foto telah disimpan sebagai 'foto.jpg'")
+
+# Bebaskan sumber daya
+webcam.release()
+cv2.destroyAllWindows()
